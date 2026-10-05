@@ -741,14 +741,6 @@
     .contact-box { padding: 22px 18px; }
   }
 
-  /* ---------- resume ---------- */
-  .resume-bar { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
-  .resume-updated { color: var(--muted, var(--text)); font-size:14px; }
-  .resume-actions { display:flex; gap:10px; flex-wrap:wrap; }
-  .resume-frame { border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--panel); overflow:hidden; }
-  .resume-frame iframe { display:block; width:100%; height:min(85vh, 1100px); border:0; background:#fff; }
-  .resume-missing { padding:22px; font-size:14px; }
-  @media (max-width:700px){ .resume-frame iframe { height:70vh; } }
 </style>
 </head>
 <body>
@@ -763,7 +755,7 @@
         <li><a href="#experience">experience</a></li>
         <li><a href="#projects">projects</a></li>
         <li><a href="#certs">certifications</a></li>
-        <li><a href="#resume">resume</a></li>
+        <li><a href="resume.pdf" target="_blank" rel="noopener" class="resume-link">resume</a></li>
         <li><a href="#contact">contact</a></li>
       </ul>
       <button class="theme-toggle" id="themeToggle" type="button">◐ theme</button>
@@ -784,7 +776,7 @@
 
     <div class="hero-actions">
       <a href="#certs" class="btn btn-primary">View certifications</a>
-      <a href="#resume" class="btn btn-ghost">Resume</a>
+      <a href="resume.pdf" target="_blank" rel="noopener" class="btn btn-ghost resume-link">Resume</a>
       <a href="#contact" class="btn btn-ghost">Get in touch</a>
     </div>
 
@@ -1034,22 +1026,6 @@
     </div>
   </div>
 </section>
-
-  <section id="resume">
-    <div class="sec-head"><span class="sec-tag">resume</span></div>
-    <h2 class="title" style="margin-bottom:22px;">Resume</h2>
-    <div class="resume-bar">
-      <span class="resume-updated" id="resumeUpdated">Always the latest version</span>
-      <div class="resume-actions">
-        <a class="btn btn-primary" id="resumeDownload" href="resume.pdf" download="Vaibhav_Godse_Resume.pdf">Download PDF</a>
-        <a class="btn btn-ghost" id="resumeOpen" href="resume.pdf" target="_blank" rel="noopener">Open in new tab</a>
-      </div>
-    </div>
-    <div class="resume-frame" id="resumeFrame">
-      <iframe id="resumeEmbed" title="Vaibhav Godse resume (PDF)"></iframe>
-      <noscript><p class="resume-missing"><a href="resume.pdf">Open my resume (PDF)</a></p></noscript>
-    </div>
-  </section>
 </div>
 
 <footer id="contact">
@@ -1065,7 +1041,7 @@
         <div><span class="k">location</span><span>Nashik, Maharashtra, India</span></div>
       </div>
     </div>
-    <div class="footnote">thanks for reading — vaibhav godse</div>
+    <div class="footnote">let's build and ship together — vaibhav godse</div>
   </div>
 </footer>
 
@@ -1177,33 +1153,14 @@
 </script>
 
 <script>
-/* Resume: always loads resume.pdf from this site, so replacing that file updates the portfolio. */
+/* Resume links open resume.pdf in a new tab. Adding the file's modified time to the URL
+   makes the browser fetch the newest version after you update resume.pdf. */
 (function () {
-  var URL_PDF = 'resume.pdf';
-  var frame = document.getElementById('resumeFrame');
-  var embed = document.getElementById('resumeEmbed');
-  var label = document.getElementById('resumeUpdated');
-  function missing() {
-    label.textContent = 'Resume coming soon';
-    frame.innerHTML = '<p class="resume-missing">The resume file is not available yet.</p>';
-    document.getElementById('resumeDownload').style.display = 'none';
-    document.getElementById('resumeOpen').style.display = 'none';
-  }
-  function show(ver) {
-    var u = ver ? URL_PDF + '?v=' + ver : URL_PDF;
-    document.getElementById('resumeDownload').href = u;
-    document.getElementById('resumeOpen').href = u;
-    if (navigator.pdfViewerEnabled === false) { frame.style.display = 'none'; return; }
-    embed.src = u;
-  }
-  fetch(URL_PDF, { method: 'HEAD', cache: 'no-cache' }).then(function (r) {
-    if (!r.ok) { missing(); return; }
-    var lm = r.headers.get('last-modified'), t = lm ? new Date(lm) : null;
-    if (t && !isNaN(t)) {
-      label.textContent = 'Last updated: ' + t.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-      show(t.getTime());
-    } else { show(Date.now()); }
-  }).catch(function () { show(''); });   // e.g. opened straight from disk
+  fetch('resume.pdf', { method: 'HEAD', cache: 'no-cache' }).then(function (r) {
+    var t = r.ok && r.headers.get('last-modified') ? new Date(r.headers.get('last-modified')).getTime() : 0;
+    if (!t) return;
+    document.querySelectorAll('a.resume-link').forEach(function (a) { a.href = 'resume.pdf?v=' + t; });
+  }).catch(function () {});
 })();
 </script>
 
