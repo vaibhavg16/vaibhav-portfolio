@@ -14,7 +14,10 @@ on:
 # Jobs in workflow. 
 jobs:
   code-checkout:
-    runs-on: self-hosted
+    strategy:
+      matrix:
+        runner-type: [ubuntu-latest, self-hosted]
+    runs-on: ${{ matrix.runner-type }}
 
     # Steps in workflow.
     steps:
