@@ -14,6 +14,7 @@ on:
 # Jobs in workflow. 
 jobs:
   code-checkout:
+    name: deploy (${{ matrix.runner-type }})
     strategy:
       matrix:
         runner-type: [ubuntu-latest, self-hosted]
