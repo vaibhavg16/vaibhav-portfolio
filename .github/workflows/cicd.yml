@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - test-portfolio
   pull_request: 
     branches:
       - main
