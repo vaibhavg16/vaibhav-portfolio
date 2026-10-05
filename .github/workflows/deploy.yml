@@ -1,6 +1,4 @@
-
-
-  # Name of the Workflow.
+# Name of the Workflow.
 name: Deploy
 
 # When the workflow should run.
@@ -10,16 +8,21 @@ on:
   # workflow_call: when this workflow needs to be called from another workflow.
   # workflow_dispatch: whenever you want the workflow to be called manually 
   # schedule: whenever you want the workflow to run at a specific time.
-  
+
 # Jobs in workflow. 
 jobs:
   code-checkout:
-    runs-on: self-hosted
+    name: deploy (${{ matrix.runner-type }})
+    strategy:
+      matrix:
+        runner-type: [ubuntu-latest, self-hosted]
+    runs-on: ${{ matrix.runner-type }}
 
     # Steps in workflow.
     steps:
       - name: Clone Code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
+
       - name: Ensure Nginx and Deploy
         run: |
           export DEBIAN_FRONTEND=noninteractive
@@ -36,11 +39,10 @@ jobs:
           fi
 
           # Ensure Nginx service is actively running
-          sudo systemctl is-active --quiet nginx || sudo systemctl start nginx
+          sudo systemctl is-active --quiet nginx || sudo systemctl start nginx || sudo service nginx start
 
-          # Copy website file (No sudo needed if directory permissions are pre-configured)
-          cp index.html /var/www/html/index.html
-       
+          # Copy site files using elevated permissions to prevent permission denied errors
+          sudo cp -r ./* /var/www/html/
       
       - name: Deploy the code
-        run: echo "Code Deployed to AWS EC2 instance"
+        run: echo "Code Deployed successfully"
