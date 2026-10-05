@@ -740,6 +740,7 @@
   @media (max-width: 480px) {
     .contact-box { padding: 22px 18px; }
   }
+
 </style>
 </head>
 <body>
@@ -754,6 +755,7 @@
         <li><a href="#experience">experience</a></li>
         <li><a href="#projects">projects</a></li>
         <li><a href="#certs">certifications</a></li>
+        <li><a href="resume.pdf" target="_blank" rel="noopener" class="resume-link">resume</a></li>
         <li><a href="#contact">contact</a></li>
       </ul>
       <button class="theme-toggle" id="themeToggle" type="button">◐ theme</button>
@@ -774,6 +776,7 @@
 
     <div class="hero-actions">
       <a href="#certs" class="btn btn-primary">View certifications</a>
+      <a href="resume.pdf" target="_blank" rel="noopener" class="btn btn-ghost resume-link">Resume</a>
       <a href="#contact" class="btn btn-ghost">Get in touch</a>
     </div>
 
@@ -1038,7 +1041,7 @@
         <div><span class="k">location</span><span>Nashik, Maharashtra, India</span></div>
       </div>
     </div>
-    <div class="footnote">thanks for reading — vaibhav godse</div>
+    <div class="footnote">let's build and ship together — vaibhav godse</div>
   </div>
 </footer>
 
@@ -1147,6 +1150,18 @@
       if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
     });
   })();
+</script>
+
+<script>
+/* Resume links open resume.pdf in a new tab. Adding the file's modified time to the URL
+   makes the browser fetch the newest version after you update resume.pdf. */
+(function () {
+  fetch('resume.pdf', { method: 'HEAD', cache: 'no-cache' }).then(function (r) {
+    var t = r.ok && r.headers.get('last-modified') ? new Date(r.headers.get('last-modified')).getTime() : 0;
+    if (!t) return;
+    document.querySelectorAll('a.resume-link').forEach(function (a) { a.href = 'resume.pdf?v=' + t; });
+  }).catch(function () {});
+})();
 </script>
 
 </body>

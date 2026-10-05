@@ -22,6 +22,10 @@ jobs:
     steps:
       - name: Clone Code
         uses: actions/checkout@v4
+        with:
+          # CHANGE 1: download the full git history (not just the latest commit)
+          # so we can find out when resume.pdf was last changed.
+          fetch-depth: 0
 
       - name: Ensure Nginx and Deploy
         run: |
@@ -41,8 +45,21 @@ jobs:
           # Ensure Nginx service is actively running
           sudo systemctl is-active --quiet nginx || sudo systemctl start nginx || sudo service nginx start
 
+          # CHANGE 2: stamp resume.pdf with the date it was last committed,
+          # so the "Last updated" label on the portfolio shows the real resume date.
+          if [ -f resume.pdf ]; then
+            LAST_CHANGE="$(git log -1 --format=%cI -- resume.pdf)"
+            if [ -n "$LAST_CHANGE" ]; then
+              touch -d "$LAST_CHANGE" resume.pdf
+              echo "resume.pdf last changed: $LAST_CHANGE"
+            fi
+          else
+            echo "WARNING: resume.pdf not found in the repo. The Resume section will show 'coming soon'."
+          fi
+
           # Copy site files using elevated permissions to prevent permission denied errors
-          sudo cp -r ./* /var/www/html/
+          # CHANGE 3: --preserve=timestamps keeps the date from CHANGE 2 on the server copy.
+          sudo cp -r --preserve=timestamps ./* /var/www/html/
       
       - name: Deploy the code
         run: echo "Code Deployed successfully"
