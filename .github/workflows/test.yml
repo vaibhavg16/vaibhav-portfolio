@@ -4,17 +4,41 @@ name: Test
 # When the workflow should run.
 on:
   workflow_call:
-    # push: whenever code is pushed to GitHub, the workflow automatically runs. 
-    # workflow_call: when this workflow needs to be called from another workflow.
-    # workflow_dispatch: whenever you want the workflow to be called manually 
-    # schedule: whenever you want the workflow to run at a specific time.
 
-# Jobs in workflow. 
+# Jobs in workflow.
 jobs:
   code-checkout:
     runs-on: ubuntu-latest
 
     # Steps in workflow.
     steps:
+      # CHANGED: the old single step was `echo "Code Test using Sonar / Pytest"`,
+      # which can never fail. These are real checks, still dependency-free.
+      - name: Clone the code
+        uses: actions/checkout@v5
+
+      # NOTE: do NOT write `! grep ...` here. Under `set -e`, a command whose
+      # return value is inverted with `!` is exempt from exiting, so a plain
+      # `! grep` can never fail the step. Explicit if/fail() is required.
       - name: Test the code
-        run: echo "Code Test using Sonar / Pytest"
+        run: |
+          set -euo pipefail
+          fail() { echo "FAIL: $1"; exit 1; }
+
+          [ -s index.html ] || fail "index.html missing or empty"
+          [ "$(wc -c < index.html)" -gt 10000 ] || fail "index.html looks truncated"
+          head -1 index.html | grep -qi '<!doctype html>' || fail "missing <!doctype html>"
+          tail -5 index.html | grep -qi '</html>' || fail "missing </html>"
+          [ "$(grep -o '<section' index.html | wc -l)" = "$(grep -o '</section>' index.html | wc -l)" ] || fail "unbalanced <section>"
+          [ "$(grep -oi '<body' index.html | wc -l)" = "1" ] || fail "expected exactly one <body>"
+
+          if grep -qE '^(<<<<<<<|>>>>>>>) ' index.html; then fail "unresolved merge markers"; fi
+          if grep -q 'cdn-cgi/l/email-protection' index.html; then fail "Cloudflare email-protection link (absolute /cdn-cgi path -> 404)"; fi
+          if grep -q 'cdn-cgi/scripts/.*email-decode.min.js' index.html; then fail "Cloudflare email-decode.min.js script (absolute /cdn-cgi path -> 404)"; fi
+          if grep -q '\[email&#160;protected\]' index.html; then fail "literal '[email protected]' placeholder is visible to visitors"; fi
+          if grep -q '__CF\$cv\$params' index.html; then fail "Cloudflare challenge-platform injection (hidden iframe + /cdn-cgi 404)"; fi
+
+          [ -s resume.pdf ] || fail "resume.pdf missing or empty"
+          head -c 5 resume.pdf | grep -q '%PDF-' || fail "resume.pdf is not a PDF"
+
+          echo "Code tested OK"
