@@ -17,6 +17,14 @@ jobs:
       - name: Clone the code
         uses: actions/checkout@v5
 
+      # Cloudflare rewrites any HTML that contains a plain email address when the
+      # file is downloaded through a Cloudflare-served page: it obfuscates the
+      # address and injects email-decode.min.js + a challenge script. Those break
+      # the page off-Cloudflare. This reverses it deterministically before we
+      # validate, so a contaminated upload can never fail the build again.
+      - name: Repair Cloudflare artifacts
+        run: python3 tools/sanitize_cf.py index.html
+
       # NOTE: do NOT write `! grep ...` here. Under `set -e`, a command whose
       # return value is inverted with `!` is exempt from exiting, so a plain
       # `! grep` can never fail the step. Explicit if/fail() is required.
