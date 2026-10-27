@@ -51,6 +51,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      # Same repair as in test.yml, because this job has its own checkout.
+      # The deployed artifact is therefore always clean even if the repo holds
+      # a page that was contaminated on the way in.
+      - name: Repair Cloudflare artifacts
+        run: python3 tools/sanitize_cf.py index.html
+
       - name: Stamp resume.pdf with its last commit date
         run: |
           LC="$(git log -1 --format=%cI -- resume.pdf)"
