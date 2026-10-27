@@ -5,10 +5,21 @@ on:
     branches:
       - main
       - test-portfolio
-  pull_request: 
+  pull_request:
     branches:
       - main
-  workflow_dispatch: 
+  workflow_dispatch:
+
+# Two pushes can no longer fight over the deploy: the newer run cancels the older.
+concurrency:
+  group: cicd-${{ github.ref }}
+  cancel-in-progress: true
+
+# Minimum scope; just enough for actions/deploy-pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   code:
@@ -19,6 +30,44 @@ jobs:
   test:
     needs: build
     uses: ./.github/workflows/test.yml
-  deploy:
+
+  # Public GitHub Pages deploy, inside YOUR pipeline, after tests pass.
+  # Requires: Settings > Pages > Source = "GitHub Actions".
+  #
+  # NOTE (browser-only setup): the self-hosted `deploy` job that rsyncs to your
+  # laptop's /var/www/html has been left OUT on purpose. It needs your machine's
+  # runner to be online; when the laptop is off the job queues forever and the
+  # run never finishes. GitHub Pages is the always-on copy.
+  # To re-enable the laptop deploy later, uncomment the block at the bottom of
+  # this file AND start the runner on the machine.
+  deploy-pages:
     needs: test
-    uses: ./.github/workflows/deploy.yml
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Stamp resume.pdf with its last commit date
+        run: |
+          LC="$(git log -1 --format=%cI -- resume.pdf)"
+          [ -n "$LC" ] && touch -d "$LC" resume.pdf
+          ls -l resume.pdf
+      - name: Build site artifact
+        run: |
+          mkdir -p _site
+          cp index.html resume.pdf _site/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  # ---- OPTIONAL: local nginx deploy (needs your laptop + runner online) ----
+  # deploy:
+  #   needs: test
+  #   if: github.ref == 'refs/heads/main'
+  #   uses: ./.github/workflows/deploy.yml
