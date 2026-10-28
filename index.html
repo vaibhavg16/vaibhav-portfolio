@@ -79,13 +79,6 @@ window.CERT_DATA = [
     title: 'Agentic AI for DevOps — Masterclass'
   },
   {
-    key: 'capgemini',
-    issuer: 'Capgemini / TNS India Foundation',
-    date: '2024-01-01',
-    file: 'capgemini-campus-to-technical-careers.jpg',
-    title: 'Campus to Technical Careers Training Program'
-  },
-  {
     key: 'techlearn',
     issuer: 'Techlearn.live',
     date: '2021-12-01',
@@ -225,8 +218,9 @@ window.CERT_DATA = [
   }
   .nav-inner {
     max-width: 920px; margin: 0 auto; padding: 15px 28px;
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
   }
+  .brand { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; }
   @media (max-width: 480px) { .nav-inner { padding: 13px 18px; } }
   .brand {
     display: flex; align-items: center; gap: 9px;
@@ -240,7 +234,8 @@ window.CERT_DATA = [
   }
   @keyframes blink-dot { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
   .nav-right { display: flex; align-items: center; gap: 20px; flex-shrink: 0; }
-  .nav-links { display: flex; gap: 22px; list-style: none; font-size: 13px; font-family: var(--mono); }
+  .nav-links { display: flex; gap: 16px; list-style: none; font-size: 12.5px; font-family: var(--mono); }
+  .nav-links a { white-space: nowrap; }
   .nav-links a { text-decoration: none; color: var(--text-dim); transition: color 0.15s ease; }
   .nav-links a:hover { color: var(--mint); }
   .theme-toggle {
@@ -258,7 +253,7 @@ window.CERT_DATA = [
   .nav-burger.open span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
   .nav-burger.open span:nth-child(2) { opacity: 0; }
   .nav-burger.open span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
-  @media (max-width: 760px) {
+  @media (max-width: 1080px) {
     .nav-links {
       display: flex; flex-direction: column; gap: 0; position: absolute; top: 100%; left: 0; right: 0;
       background: var(--bg); border-bottom: 1px solid var(--border-soft); max-height: 0; overflow: hidden;
@@ -525,6 +520,7 @@ section { scroll-margin-top: 84px; }
 .cert-filter[aria-pressed="true"] {
   background: var(--accent-soft); color: var(--accent); border-color: var(--accent);
 }
+.cert-filters { flex-basis: 100%; }
 .cert-toolbar-meta {
   font-family: var(--mono); font-size: 12px; color: var(--text-faint);
   flex-basis: 100%; text-align: right; white-space: nowrap;
@@ -570,36 +566,6 @@ section { scroll-margin-top: 84px; }
 .cert-empty.show { display: block; }
 
 /* ---------- add a certificate: how-to box ---------- */
-.cert-howto {
-  margin-top: 22px;
-  border: 1px solid var(--border); border-radius: var(--radius);
-  background: var(--panel-2); overflow: hidden;
-}
-.cert-howto > summary {
-  cursor: pointer; list-style: none;
-  padding: 14px 18px; display: flex; align-items: center; gap: 10px;
-  font-family: var(--mono); font-size: 12.5px; color: var(--text-dim);
-}
-.cert-howto > summary::-webkit-details-marker { display: none; }
-.cert-howto > summary::before {
-  content: "+"; color: var(--accent); font-weight: 700; width: 12px;
-}
-.cert-howto[open] > summary::before { content: "−"; }
-.cert-howto > summary:hover { color: var(--text); }
-.cert-howto-body { padding: 0 18px 18px; font-size: 14px; color: var(--text-dim); }
-.cert-howto-body ol { margin: 8px 0 0 18px; padding: 0; }
-.cert-howto-body li { margin: 7px 0; }
-.cert-howto-body code {
-  font-family: var(--mono); font-size: 12.5px;
-  background: var(--bg); border: 1px solid var(--border-soft);
-  border-radius: 4px; padding: 1.5px 5px; color: var(--accent-strong);
-}
-.cert-howto-body pre {
-  font-family: var(--mono); font-size: 12px; line-height: 1.6;
-  background: var(--bg); border: 1px solid var(--border-soft);
-  border-radius: var(--radius-sm); padding: 12px 14px;
-  overflow-x: auto; color: var(--text-dim); margin: 10px 0 0;
-}
 
 /* ---------- copy-email button ---------- */
 .copy-email {
@@ -627,12 +593,105 @@ section { scroll-margin-top: 84px; }
 
 /* ---------- print: keep it presentable on paper ---------- */
 @media print {
-  .cert-toolbar, .cert-howto, .copy-email, .theme-toggle, .skip-link,
-  .lightbox, .lightbox-hint { display: none !important; }
+  .cert-toolbar,
   .cert-card { break-inside: avoid; border-color: #bbb; }
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 10px; color: #666; }
 }
 
+
+/* ---------- certificate thumbnail + graceful "no image" state ---------- */
+.cert-thumb-wrap { position: relative; width: 100%; height: 132px; }
+.cert-thumb-wrap .cert-thumb { height: 100%; }
+.cert-thumb-empty {
+  position: absolute; inset: 0; display: none;
+  flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  border: 1px dashed var(--border); border-radius: var(--radius-sm);
+  background: var(--bg); color: var(--text-faint);
+  font-family: var(--mono); font-size: 11.5px; text-align: center; padding: 8px;
+}
+.cert-thumb-wrap.is-empty .cert-thumb { display: none; }
+.cert-thumb-wrap.is-empty .cert-thumb-empty { display: flex; }
+
+/* ---------- "+ add certificate" in the toolbar ---------- */
+.cert-add {
+  font-family: var(--mono); font-size: 12px; cursor: pointer;
+  background: var(--accent-soft); color: var(--accent);
+  border: 1px solid var(--accent); border-radius: var(--radius-sm);
+  padding: 9px 14px; white-space: nowrap; transition: background .15s ease;
+}
+.cert-add:hover { background: color-mix(in srgb, var(--accent) 26%, transparent); }
+.cert-add::before { content: "+ "; font-weight: 700; }
+
+/* ---------- admin-only controls (shown after unlocking) ---------- */
+html.adm .cert-del { display: inline-flex; }
+.cert-del {
+  display: none;
+  font-family: var(--mono); font-size: 12px; cursor: pointer;
+  background: transparent; color: var(--amber);
+  border: 1px solid color-mix(in srgb, var(--amber) 45%, transparent);
+  border-radius: var(--radius-sm); padding: 8px 12px;
+}
+.cert-del:hover { background: var(--amber-soft); }
+
+/* ---------- password modal ---------- */
+.cert-modal {
+  position: fixed; inset: 0; z-index: 300; display: none;
+  align-items: center; justify-content: center; padding: 24px;
+  background: rgba(4,6,10,0.86); backdrop-filter: blur(4px);
+}
+.cert-modal.open { display: flex; }
+.cert-modal-box {
+  width: min(460px, 100%); max-height: 88vh; overflow-y: auto;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 22px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.cert-modal-box h3 { font-family: var(--display); font-size: 17px; }
+.cert-modal-box p { font-size: 13.5px; color: var(--text-dim); line-height: 1.55; }
+.cert-modal-box input, .cert-modal-box select {
+  font-family: var(--mono); font-size: 13.5px; width: 100%;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px;
+}
+.cert-modal-box input:focus, .cert-modal-box select:focus { outline: none; border-color: var(--accent); }
+.cert-modal-msg { font-family: var(--mono); font-size: 12px; color: var(--amber); min-height: 16px; }
+.cert-modal-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.cert-modal-actions button {
+  font-family: var(--mono); font-size: 12.5px; cursor: pointer;
+  border-radius: var(--radius-sm); padding: 9px 14px;
+  background: var(--panel-2); color: var(--text-dim); border: 1px solid var(--border);
+}
+.cert-modal-actions button[type="submit"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+.cert-modal-actions button:hover { border-color: var(--accent); color: var(--accent); }
+.cert-modal-actions button[type="submit"]:hover { background: var(--accent-strong); color: #fff; }
+.cert-form { display: flex; flex-direction: column; gap: 10px; }
+[hidden] { display: none !important; }
+.cert-form label { font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); display: block; margin-bottom: 3px; }
+.cert-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 480px) { .cert-form .row { grid-template-columns: 1fr; } }
+.cert-form .hint { font-size: 12px; color: var(--text-faint); font-family: var(--mono); }
+
+
+/* ---------- toolbar "new certificate" + admin-only hints ---------- */
+.cert-add-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+.cert-add-hint, .cert-admin-badge {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--amber);
+}
+.cert-admin-badge {
+  border: 1px solid color-mix(in srgb, var(--amber) 45%, transparent);
+  border-radius: 999px; padding: 3px 8px; white-space: nowrap;
+}
+.cert-modal-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cert-modal-head h3 { margin-right: auto; }
+
+
+/* ---------- slim toolbar: just the "new certificate" action ---------- */
+.cert-toolbar--slim {
+  justify-content: flex-end;
+  margin: 0 0 18px;
+}
+.cert-toolbar--slim .cert-add-wrap { align-items: flex-end; }
 </style>
 </head>
 <body>
@@ -642,7 +701,6 @@ section { scroll-margin-top: 84px; }
     <a href="#top" class="brand"><span class="brand-dot"></span>vaibhav@devops:~$</a>
     <div class="nav-right">
       <ul class="nav-links" id="navLinks">
-        <li><a href="#about">about</a></li>
         <li><a href="#skills">skills</a></li>
         <li><a href="#pipeline">pipeline</a></li>
         <li><a href="#experience">experience</a></li>
@@ -696,7 +754,7 @@ section { scroll-margin-top: 84px; }
     <div class="hero-links">
       <a href="https://github.com/vaibhavg16" target="_blank" rel="noopener">github.com/vaibhavg16</a>
       <a href="https://www.linkedin.com/in/vaibhavgodse16122002/" target="_blank" rel="noopener">linkedin.com/in/vaibhavgodse16122002</a>
-      <a href="/cdn-cgi/l/email-protection#9ef9f1faedfbe8fff7fcf6ffe8acaeafdef9f3fff7f2b0fdf1f3"><span class="__cf_email__" data-cfemail="a6c1c9c2d5c3d0c7cfc4cec7d0949697e6c1cbc7cfca88c5c9cb">[email&#160;protected]</span></a>
+      <a href="/cdn-cgi/l/email-protection#15727a71667063747c777d7463272524557278747c793b767a78"><span class="__cf_email__" data-cfemail="4d2a22293e283b2c242f252c3b7f7d7c0d2a202c2421632e2220">[email&#160;protected]</span></a>
       <a href="tel:+918080231458">+91 80802 31458</a>
       <span>Nashik, Maharashtra</span>
     </div>
@@ -916,39 +974,19 @@ section { scroll-margin-top: 84px; }
   <section id="certs">
     <div class="sec-head"><span class="sec-tag">certifications</span></div>
     <h2 class="title" data-cert-heading>Certifications</h2>
-    <p class="sec-sub">Tap any certificate to view the full image. Use the search and issuer filters to narrow the list.</p>
 
-    <div class="cert-toolbar" id="certToolbar">
-      <label class="sr-only" for="certSearch">Search certificates</label>
-      <input class="cert-search" id="certSearch" type="search" placeholder="search certificates, issuer or year…" autocomplete="off">
-      <div class="cert-filters" id="certFilters"></div>
-      <span class="cert-toolbar-meta" id="certToolbarMeta" aria-live="polite"></span>
+    <div class="cert-toolbar cert-toolbar--slim" id="certToolbar">
+      <div class="cert-add-wrap">
+        <button class="cert-add" id="certAdd" type="button" title="Add a certificate">new certificate</button>
+        <span class="cert-add-hint">only for admin</span>
+      </div>
     </div>
 
     <div class="cert-grid" id="certGrid">
       <!-- cards are generated from the CERTS array in the script block below -->
     </div>
-    <div class="cert-empty" id="certEmpty">no certificates match that search.</div>
+    <div class="cert-empty" id="certEmpty">no certificates yet.</div>
 
-    <details class="cert-howto">
-      <summary>how to add a new certificate</summary>
-      <div class="cert-howto-body">
-        <ol>
-          <li>Put the certificate image in <code>assets/certs/</code> in this repo, e.g.
-              <code>assets/certs/my-new-cert.jpg</code> (JPG or PNG, ideally under 400&nbsp;KB).</li>
-          <li>Open <code>certs-data.js</code> in this repo (it is a small file — no need to
-              scroll through this page).</li>
-          <li>Add one line inside the list:
-<pre>{ key: 'mynewcert', issuer: 'Issuer Name', date: '2026-11-01',
-  file: 'my-new-cert.jpg', title: 'Full certificate title' },</pre>
-          </li>
-          <li>Commit. That's it — the hero counter, this heading, the filter
-              buttons and the card all update by themselves.</li>
-        </ol>
-        <p style="margin-top:10px">To remove a certificate, delete its line. To change the
-           order, change the <code>date</code> — cards sort newest first.</p>
-      </div>
-    </details>
   </section>
 
   <section id="education" style="padding-bottom:0;">
@@ -986,7 +1024,7 @@ section { scroll-margin-top: 84px; }
       <h2>Let's talk</h2>
       <p>Looking for a DevOps Engineer or Linux Administrator to join your team — happy to walk through any of the above in more detail.</p>
       <div class="contact-grid">
-        <div><span class="k">email</span><a href="/cdn-cgi/l/email-protection#cbaca4afb8aebdaaa2a9a3aabdf9fbfa8baca6aaa2a7e5a8a4a6"><span class="__cf_email__" data-cfemail="7d1a12190e180b1c141f151c0b4f4d4c3d1a101c1411531e1210">[email&#160;protected]</span></a><button class="copy-email" type="button" aria-label="Copy email address">copy</button></div>
+        <div><span class="k">email</span><a href="/cdn-cgi/l/email-protection#395e565d4a5c4f58505b51584f0b0908795e54585055175a5654"><span class="__cf_email__" data-cfemail="4e29212a3d2b382f272c262f387c7e7f0e29232f2722602d2123">[email&#160;protected]</span></a><button class="copy-email" type="button" aria-label="Copy email address">copy</button></div>
         <div><span class="k">phone</span><a href="tel:+918080231458">+91 80802 31458</a></div>
         <div><span class="k">github</span><a href="https://github.com/vaibhavg16" target="_blank" rel="noopener">vaibhavg16</a></div>
         <div><span class="k">linkedin</span><a href="https://www.linkedin.com/in/vaibhavgodse16122002/" target="_blank" rel="noopener">vaibhavgodse16122002</a></div>
@@ -1049,16 +1087,24 @@ window.CERT_IMAGES = {
    VAIBHAV PORTFOLIO — v2 behaviour
    - single source of truth for certificates (the CERTS object below)
    - badge counts, page title, hero stat and section heading all auto-derive
-   - search / issuer filter / sort
+   - newest-first sort, plus a password-gated "add certificate" panel
    - real mailto: email links with a copy button
    ========================================================================== */
 
 /* ---------------------------------------------------------------------------
    1. CERTIFICATE DATA
-   The list lives in certs-data.js (a small file, easy to edit on GitHub).
-   Do not hardcode the count anywhere: everything below derives from its length.
+   The list is the CERT_DATA block near the top of this file (search for
+   'ADD / EDIT CERTIFICATES HERE'). Do not hardcode the count anywhere:
+   everything below derives from its length.
    ------------------------------------------------------------------------- */
 var CERTS = (window.CERT_DATA || []).slice();
+
+/* Re-read the live data before every render, so additions and removals made by
+   the password-gated admin panel show up immediately. */
+function syncData() {
+  CERTS = (window.CERT_DATA || []).slice();
+  CERTS.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+}
 
 /* Path that certificate images are loaded from.
    - 'assets/certs/'          -> separate image files (fast, recommended)
@@ -1098,15 +1144,10 @@ function num(n) { return String(n); }
 /* --------------------------------------------------- the single renderer */
 var certGrid = document.getElementById('certGrid');
 var certToolbar = document.getElementById('certToolbar');
-var certFilters = document.getElementById('certFilters');
-var certSearch = document.getElementById('certSearch');
-var certToolbarMeta = document.getElementById('certToolbarMeta');
 var certEmpty = document.getElementById('certEmpty');
 var certCountEls = document.querySelectorAll('[data-cert-count]');
 var certHeading = document.querySelector('[data-cert-heading]');
 
-var activeFilter = 'all';
-var activeQuery = '';
 
 /* sort: newest first by default */
 CERTS.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
@@ -1120,32 +1161,6 @@ function refreshCounts() {
   document.title = 'Vaibhav Godse — DevOps & Linux Engineer (' + n + ' certification' + (n === 1 ? '' : 's') + ')';
 }
 
-/* ---------- filter buttons: one per issuer, generated not hardcoded ------- */
-function buildFilters() {
-  if (!certFilters) return;
-  var issuers = [];
-  CERTS.forEach(function (c) { if (issuers.indexOf(c.issuer) === -1) issuers.push(c.issuer); });
-  issuers.sort();
-
-  var html = '<button class="cert-filter" type="button" data-filter="all" aria-pressed="true">all (' + CERTS.length + ')</button>';
-  issuers.forEach(function (iss) {
-    var count = CERTS.filter(function (c) { return c.issuer === iss; }).length;
-    html += '<button class="cert-filter" type="button" data-filter="' + esc(iss) + '" aria-pressed="false">' +
-            esc(iss) + ' (' + count + ')</button>';
-  });
-  certFilters.innerHTML = html;
-
-  certFilters.addEventListener('click', function (e) {
-    var btn = e.target.closest('.cert-filter');
-    if (!btn) return;
-    activeFilter = btn.getAttribute('data-filter');
-    certFilters.querySelectorAll('.cert-filter').forEach(function (b) {
-      b.setAttribute('aria-pressed', String(b === btn));
-    });
-    applyFilters();
-  });
-}
-
 /* ---------- cards ---------- */
 function renderCards() {
   if (!certGrid) return;
@@ -1155,42 +1170,22 @@ function renderCards() {
       '<article class="cert-card" data-issuer="' + esc(c.issuer) + '" ' +
               'data-search="' + esc((c.title + ' ' + c.issuer + ' ' + fmtDate(c.date)).toLowerCase()) + '">' +
         '<div class="cert-badge" aria-hidden="true">◈</div>' +
-        '<img class="cert-thumb" src="' + esc(certSrc(c)) + '" alt="' + esc(c.title) + ' certificate" ' +
-             'loading="' + (i < 4 ? 'eager' : 'lazy') + '" decoding="async" data-key="' + esc(c.key) + '">' +
+        '<div class="cert-thumb-wrap">' +
+          '<img class="cert-thumb" src="' + esc(certSrc(c)) + '" alt="' + esc(c.title) + ' certificate" ' +
+               'loading="' + (i < 4 ? 'eager' : 'lazy') + '" decoding="async" data-key="' + esc(c.key) + '">' +
+          '<div class="cert-thumb-empty"><span class="cert-thumb-empty-label">no image yet</span></div>' +
+        '</div>' +
         '<div class="cert-name">' + esc(c.title) + '</div>' +
         '<div class="cert-meta">' + esc(c.issuer) + ' · ' + esc(fmtDate(c.date)) + '</div>' +
         '<div class="cert-actions">' +
           '<button class="cert-view" type="button" data-cert="' + esc(c.key) + '">view certificate →</button>' +
           '<a class="cert-link" href="' + esc(certSrc(c)) + '" download="' + esc(c.file) + '">download</a>' +
+          '<button class="cert-del" type="button" data-del="' + esc(c.key) + '">remove</button>' +
         '</div>' +
       '</article>';
   });
   certGrid.innerHTML = html;
   if (certEmpty) certGrid.appendChild(certEmpty);
-}
-
-/* ---------- search + filter ---------- */
-function applyFilters() {
-  var cards = certGrid ? certGrid.querySelectorAll('.cert-card') : [];
-  var shown = 0;
-  cards.forEach(function (card) {
-    var byIssuer = activeFilter === 'all' || card.getAttribute('data-issuer') === activeFilter;
-    var byQuery = !activeQuery || card.getAttribute('data-search').indexOf(activeQuery) !== -1;
-    var show = byIssuer && byQuery;
-    card.hidden = !show;
-    if (show) shown++;
-  });
-  if (certEmpty) {
-    certEmpty.classList.toggle('show', shown === 0);
-    if (CERTS.length === 0) {
-      certEmpty.textContent = 'no certificates yet — add one to certs-data.js.';
-    } else {
-      certEmpty.textContent = 'no certificates match that search.';
-    }
-  }
-  if (certToolbarMeta) {
-    certToolbarMeta.textContent = shown + ' of ' + CERTS.length + ' shown';
-  }
 }
 
 /* ---------- image fallback: assets/certs file missing -> embedded copy --- */
@@ -1203,23 +1198,27 @@ document.addEventListener('error', function (e) {
     img.dataset.fallbackDone = '1';
     img.src = window.CERT_IMAGES[key];
   } else if (img.classList && img.classList.contains('cert-thumb')) {
+    /* no embedded copy and no file on disk — show the placeholder tile */
+    img.dataset.fallbackDone = '1';
     img.style.display = 'none';
+    var wrap = img.closest('.cert-thumb-wrap');
+    if (wrap) wrap.classList.add('is-empty');
   }
 }, true);
 
 /* ------------------------------------------------------------- boot v2 */
+function renderCertSection() {
+  if (typeof syncData === 'function') syncData();
+  var grid = document.getElementById('certGrid');
+  if (grid) grid.innerHTML = '';
+  refreshCounts();
+  renderCards();
+}
+window.renderCertSection = renderCertSection;
+
 (function () {
   refreshCounts();
-  buildFilters();
   renderCards();
-
-  if (certSearch) {
-    certSearch.addEventListener('input', function () {
-      activeQuery = this.value.trim().toLowerCase();
-      applyFilters();
-    });
-  }
-  applyFilters();
 
   /* lightbox wiring: now reads from the array, not the old object */
   var lightbox = document.getElementById('lightbox');
@@ -1344,268 +1343,284 @@ document.addEventListener('error', function (e) {
 </script>
 
 
+
+
+<div class="cert-modal" id="certModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="certModalTitle">
+  <div class="cert-modal-box">
+    <div class="cert-modal-head">
+      <h3 id="certModalTitle">New certificate</h3>
+      <span class="cert-admin-badge">only for admin</span>
+    </div>
+    <p id="certModalIntro">Uploading a certificate is restricted. Enter the admin password to continue.</p>
+
+    <form id="certAuthForm" class="cert-form" autocomplete="off">
+      <div>
+        <label for="certPw">admin password</label>
+        <input id="certPw" type="password" required spellcheck="false" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;">
+      </div>
+      <div class="cert-modal-msg" id="certAuthMsg"></div>
+      <div class="cert-modal-actions">
+        <button type="button" id="certModalCancel">cancel</button>
+        <button type="submit">unlock</button>
+      </div>
+    </form>
+
+    <form id="certAddForm" class="cert-form" hidden autocomplete="off">
+      <div>
+        <label for="cfTitle">certificate name</label>
+        <input id="cfTitle" type="text" required placeholder="Certificate of Internship — Campus Leader">
+      </div>
+      <div>
+        <label for="cfType">type</label>
+        <select id="cfType" required>
+          <option value="Certification">Certification</option>
+          <option value="Internship">Internship</option>
+          <option value="Course">Course</option>
+          <option value="Workshop">Workshop</option>
+          <option value="Training Program">Training Program</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div>
+        <label for="cfName">your name (as printed on the certificate)</label>
+        <input id="cfName" type="text" required value="Vaibhav Ashok Godse">
+      </div>
+      <div class="row">
+        <div>
+          <label for="cfIssuer">platform / issuer</label>
+          <input id="cfIssuer" type="text" required placeholder="Techlearn.live">
+        </div>
+        <div>
+          <label for="cfStart">start date</label>
+          <input id="cfStart" type="date" required>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="cfDate">issue date (shown on the card)</label>
+          <input id="cfDate" type="date" required>
+        </div>
+        <div>
+          <label for="cfCred">credential ID (optional)</label>
+          <input id="cfCred" type="text" placeholder="e.g. UC-1234abcd">
+        </div>
+      </div>
+      <div>
+        <label for="cfLink">certificate link (optional)</label>
+        <input id="cfLink" type="url" placeholder="https://&#8230;">
+      </div>
+      <div>
+        <label for="cfFile">certificate file &#8212; PDF or image (required)</label>
+        <input id="cfFile" type="file" accept=".pdf,image/*" required>
+        <div class="hint" id="cfFileHint">PDF, JPG or PNG. Images get an automatic thumbnail.</div>
+      <div class="hint" id="cfSaveHint">Added certificates stay in this browser tab only.</div>
+      </div>
+      <div class="cert-modal-msg" id="certAddMsg"></div>
+      <div class="cert-modal-actions">
+        <button type="button" id="certSave">upload certificate</button>
+        <button type="button" id="certAddClose">close</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
 <script>
+
 /* ============================================================================
-   VAIBHAV PORTFOLIO — v2 behaviour
-   - single source of truth for certificates (the CERTS object below)
-   - badge counts, page title, hero stat and section heading all auto-derive
-   - search / issuer filter / sort
-   - real mailto: email links with a copy button
+   ADMIN MODE — password-gated certificate upload
+   ----------------------------------------------------------------------------
+   Speed bump, not real security: this check runs in the visitor's browser, so
+   anyone who reads this file can find the password. It stops a casual visitor
+   from editing your certificates; it cannot stop a determined one. Anything
+   genuinely private belongs behind a server, not in a static page.
+
+   Change the password:
+       printf '%s' 'new-password' | sha256sum      → put the 64-char value below
+       then update ADMIN_PASSWORD_PLAIN to the same password
    ========================================================================== */
+var ADMIN_PASSWORD_HASH = '8740643deb55e3f841b12171d2ef7673aaaa46f840dc8a171d94956876d934fa';
+var ADMIN_PASSWORD_PLAIN = 'vaibhav-cert-2026';
 
-/* ---------------------------------------------------------------------------
-   1. CERTIFICATE DATA
-   The list lives in certs-data.js (a small file, easy to edit on GitHub).
-   Do not hardcode the count anywhere: everything below derives from its length.
-   ------------------------------------------------------------------------- */
-var CERTS = (window.CERT_DATA || []).slice();
-
-/* Path that certificate images are loaded from.
-   - 'assets/certs/'          -> separate image files (fast, recommended)
-   - 'inline'                 -> use the base64 images embedded in CERT_IMAGES
-   The embedded images from your original file are kept below so the site keeps
-   working even if the assets folder has not been created yet.                */
-var CERT_IMG_BASE = 'assets/certs/';
-
-/* Embedded originals (base64) are injected by the build step as
-   window.CERT_IMAGES; they are the fallback when assets/certs/*.jpg is missing. */
-if (typeof window.CERT_IMAGES === 'undefined') { window.CERT_IMAGES = {}; }
-
-/* ------------------------------------------------------------------ utils */
-var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-function fmtDate(iso) {
-  var p = String(iso || '').split('-');
-  if (p.length < 2) return '';
-  var m = parseInt(p[1], 10);
-  return (MONTHS[m - 1] || '') + ' ' + p[0];
-}
-function esc(s) {
-  return String(s).replace(/[&<>"']/g, function (c) {
-    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
-  });
-}
-function certSrc(c) {
-  /* Embedded copies are used when present, so this single file has no external
-     dependencies at all. A certificate you add later (no embedded copy) falls
-     back to assets/certs/<file> - upload the image there and it just works. */
-  if (window.CERT_IMAGES && window.CERT_IMAGES[c.key]) return window.CERT_IMAGES[c.key];
-  if (!c.file) return '';
-  return CERT_IMG_BASE + c.file;
-}
-function num(n) { return String(n); }
-
-/* --------------------------------------------------- the single renderer */
-var certGrid = document.getElementById('certGrid');
-var certToolbar = document.getElementById('certToolbar');
-var certFilters = document.getElementById('certFilters');
-var certSearch = document.getElementById('certSearch');
-var certToolbarMeta = document.getElementById('certToolbarMeta');
-var certEmpty = document.getElementById('certEmpty');
-var certCountEls = document.querySelectorAll('[data-cert-count]');
-var certHeading = document.querySelector('[data-cert-heading]');
-
-var activeFilter = 'all';
-var activeQuery = '';
-
-/* sort: newest first by default */
-CERTS.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
-
-/* ---------- counts (hero stat, heading, filter badges, page title) -------- */
-function refreshCounts() {
-  var n = CERTS.length;
-  certCountEls.forEach(function (el) { el.textContent = num(n); });
-  if (certHeading) certHeading.textContent = 'Certifications';
-  document.documentElement.classList.add('cert-count-ready');
-  document.title = 'Vaibhav Godse — DevOps & Linux Engineer (' + n + ' certification' + (n === 1 ? '' : 's') + ')';
-}
-
-/* ---------- filter buttons: one per issuer, generated not hardcoded ------- */
-function buildFilters() {
-  if (!certFilters) return;
-  var issuers = [];
-  CERTS.forEach(function (c) { if (issuers.indexOf(c.issuer) === -1) issuers.push(c.issuer); });
-  issuers.sort();
-
-  var html = '<button class="cert-filter" type="button" data-filter="all" aria-pressed="true">all (' + CERTS.length + ')</button>';
-  issuers.forEach(function (iss) {
-    var count = CERTS.filter(function (c) { return c.issuer === iss; }).length;
-    html += '<button class="cert-filter" type="button" data-filter="' + esc(iss) + '" aria-pressed="false">' +
-            esc(iss) + ' (' + count + ')</button>';
-  });
-  certFilters.innerHTML = html;
-
-  certFilters.addEventListener('click', function (e) {
-    var btn = e.target.closest('.cert-filter');
-    if (!btn) return;
-    activeFilter = btn.getAttribute('data-filter');
-    certFilters.querySelectorAll('.cert-filter').forEach(function (b) {
-      b.setAttribute('aria-pressed', String(b === btn));
-    });
-    applyFilters();
-  });
-}
-
-/* ---------- cards ---------- */
-function renderCards() {
-  if (!certGrid) return;
-  var html = '';
-  CERTS.forEach(function (c, i) {
-    html +=
-      '<article class="cert-card" data-issuer="' + esc(c.issuer) + '" ' +
-              'data-search="' + esc((c.title + ' ' + c.issuer + ' ' + fmtDate(c.date)).toLowerCase()) + '">' +
-        '<div class="cert-badge" aria-hidden="true">◈</div>' +
-        '<img class="cert-thumb" src="' + esc(certSrc(c)) + '" alt="' + esc(c.title) + ' certificate" ' +
-             'loading="' + (i < 4 ? 'eager' : 'lazy') + '" decoding="async" data-key="' + esc(c.key) + '">' +
-        '<div class="cert-name">' + esc(c.title) + '</div>' +
-        '<div class="cert-meta">' + esc(c.issuer) + ' · ' + esc(fmtDate(c.date)) + '</div>' +
-        '<div class="cert-actions">' +
-          '<button class="cert-view" type="button" data-cert="' + esc(c.key) + '">view certificate →</button>' +
-          '<a class="cert-link" href="' + esc(certSrc(c)) + '" download="' + esc(c.file) + '">download</a>' +
-        '</div>' +
-      '</article>';
-  });
-  certGrid.innerHTML = html;
-  if (certEmpty) certGrid.appendChild(certEmpty);
-}
-
-/* ---------- search + filter ---------- */
-function applyFilters() {
-  var cards = certGrid ? certGrid.querySelectorAll('.cert-card') : [];
-  var shown = 0;
-  cards.forEach(function (card) {
-    var byIssuer = activeFilter === 'all' || card.getAttribute('data-issuer') === activeFilter;
-    var byQuery = !activeQuery || card.getAttribute('data-search').indexOf(activeQuery) !== -1;
-    var show = byIssuer && byQuery;
-    card.hidden = !show;
-    if (show) shown++;
-  });
-  if (certEmpty) {
-    certEmpty.classList.toggle('show', shown === 0);
-    if (CERTS.length === 0) {
-      certEmpty.textContent = 'no certificates yet — add one to certs-data.js.';
-    } else {
-      certEmpty.textContent = 'no certificates match that search.';
-    }
+async function sha256hex(text) {
+  if (window.crypto && crypto.subtle && window.isSecureContext) {
+    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map(function (b) {
+      return b.toString(16).padStart(2, '0');
+    }).join('');
   }
-  if (certToolbarMeta) {
-    certToolbarMeta.textContent = shown + ' of ' + CERTS.length + ' shown';
-  }
+  /* crypto.subtle is unavailable on file:// in some browsers — plain fallback */
+  return text === ADMIN_PASSWORD_PLAIN ? ADMIN_PASSWORD_HASH : '\u0000wrong';
 }
 
-/* ---------- image fallback: assets/certs file missing -> embedded copy --- */
-document.addEventListener('error', function (e) {
-  var img = e.target;
-  if (!img || img.tagName !== 'IMG' || !img.dataset || img.dataset.fallbackDone) return;
-  var key = img.dataset.key;
-  if (!key && img.id === 'lightboxImg' && img.dataset.key) key = img.dataset.key;
-  if (key && window.CERT_IMAGES[key]) {
-    img.dataset.fallbackDone = '1';
-    img.src = window.CERT_IMAGES[key];
-  } else if (img.classList && img.classList.contains('cert-thumb')) {
-    img.style.display = 'none';
-  }
-}, true);
-
-/* ------------------------------------------------------------- boot v2 */
 (function () {
-  refreshCounts();
-  buildFilters();
-  renderCards();
+  var modal   = document.getElementById('certModal');
+  if (!modal) return;
 
-  if (certSearch) {
-    certSearch.addEventListener('input', function () {
-      activeQuery = this.value.trim().toLowerCase();
-      applyFilters();
-    });
-  }
-  applyFilters();
+  var box     = modal.querySelector('.cert-modal-box');
+  var authF   = document.getElementById('certAuthForm');
+  var addF    = document.getElementById('certAddForm');
+  var pw      = document.getElementById('certPw');
+  var authMsg = document.getElementById('certAuthMsg');
+  var addMsg  = document.getElementById('certAddMsg');
+  var intro   = document.getElementById('certModalIntro');
+  var titleEl = document.getElementById('certModalTitle');
+  var badge   = modal.querySelector('.cert-admin-badge');
 
-  /* lightbox wiring: now reads from the array, not the old object */
-  var lightbox = document.getElementById('lightbox');
-  var img = document.getElementById('lightboxImg');
-  var title = document.getElementById('lightboxTitle');
-  var dl = document.getElementById('lightboxDownload');
-  var closeBtn = document.getElementById('lightboxClose');
-  var lastFocus = null;
+  var isAdm = function () { return document.documentElement.classList.contains('adm'); };
 
-  function byKey(k) {
-    for (var i = 0; i < CERTS.length; i++) if (CERTS[i].key === k) return CERTS[i];
-    return null;
+  function openModal() {
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    var locked = !isAdm();
+    authF.hidden   = !locked;
+    addF.hidden    = locked;
+    intro.hidden   = !locked;
+    badge.hidden   = false;
+    titleEl.textContent = locked ? 'New certificate' : 'Certificate admin';
+    authMsg.textContent = ''; addMsg.textContent = '';
+    setTimeout(function () {
+      if (locked) pw.focus();
+      else { document.getElementById('cfDate').value = new Date().toISOString().slice(0,10);
+             document.getElementById('cfTitle').focus(); }
+    }, 30);
   }
-  function openLightbox(k) {
-    var c = byKey(k);
-    if (!c || !lightbox) return;
-    lastFocus = document.activeElement;
-    img.dataset.key = c.key;
-    delete img.dataset.fallbackDone;
-    img.src = certSrc(c);
-    img.alt = c.title + ' certificate';
-    title.textContent = c.title + ' — ' + fmtDate(c.date);
-    if (dl) { dl.href = certSrc(c); dl.setAttribute('download', c.file); }
-    lightbox.classList.add('open');
-    lightbox.setAttribute('aria-hidden', 'false');
-    if (closeBtn) closeBtn.focus();
-  }
-  function closeLightbox() {
-    if (!lightbox) return;
-    lightbox.classList.remove('open');
-    lightbox.setAttribute('aria-hidden', 'true');
-    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  function closeModal() {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    pw.value = '';
   }
 
-  document.addEventListener('click', function (e) {
-    var view = e.target.closest('.cert-view');
-    if (view) { openLightbox(view.getAttribute('data-cert')); return; }
-    if (e.target === lightbox) closeLightbox();
-  });
-  if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
+  var addBtn = document.getElementById('certAdd');
+  if (addBtn) addBtn.addEventListener('click', openModal);
+  document.getElementById('certModalCancel').addEventListener('click', closeModal);
+  document.getElementById('certAddClose').addEventListener('click', closeModal);
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && lightbox && lightbox.classList.contains('open')) closeLightbox();
+    if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
   });
-})();
 
-/* --------------------------------------------------- email copy button */
-(function () {
-  var EMAIL = 'godsevaibhav201@gmail.com';
+  /* ---- password gate ---- */
+  authF.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    authMsg.style.color = 'var(--text-faint)';
+    authMsg.textContent = 'checking…';
+    var h = await sha256hex(pw.value);
+    if (h === ADMIN_PASSWORD_HASH) {
+      document.documentElement.classList.add('adm');
+      authF.hidden = true;
+      addF.hidden = false;
+      intro.hidden = true;
+      titleEl.textContent = 'Certificate admin';
+      authMsg.textContent = '';
+      pw.value = '';
+      document.getElementById('cfDate').value = new Date().toISOString().slice(0,10);
+      document.getElementById('cfTitle').focus();
+    } else {
+      authMsg.style.color = 'var(--amber)';
+      authMsg.textContent = 'wrong password — you cannot upload a certificate.';
+      pw.select();
+    }
+  });
 
-  function fallbackCopy() {
-    var ta = document.createElement('textarea');
-    ta.value = EMAIL;
-    ta.setAttribute('readonly', '');
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    var ok = false;
-    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
-    document.body.removeChild(ta);
-    return ok;
+  /* ---- build a thumbnail from whatever file was chosen ---- */
+  function readAsDataURL(file) {
+    return new Promise(function (res, rej) {
+      var r = new FileReader();
+      r.onload = function () { res(r.result); };
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
   }
 
-  document.querySelectorAll('.copy-email').forEach(function (btn) {
-    var original = btn.textContent;
-    btn.addEventListener('click', function () {
-      function finish(ok) {
-        btn.textContent = ok ? 'copied \u2713' : 'press Ctrl+C';
-        btn.classList.add('done');
-        setTimeout(function () {
-          btn.textContent = original;
-          btn.classList.remove('done');
-        }, 1800);
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(EMAIL).then(
-          function () { finish(true); },
-          function () { finish(fallbackCopy()); }
-        );
-      } else {
-        finish(fallbackCopy());
-      }
+  async function makeThumb(file) {
+    if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+      /* PDFs cannot be drawn to a canvas without a renderer, so the card shows
+         the file-type badge and the PDF itself opens in the viewer. */
+      return null;
+    }
+    var dataUrl = await readAsDataURL(file);
+    return await new Promise(function (res) {
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var maxW = 480, scale = Math.min(1, maxW / img.width);
+          var c = document.createElement('canvas');
+          c.width = Math.round(img.width * scale);
+          c.height = Math.round(img.height * scale);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          res(c.toDataURL('image/jpeg', 0.82));
+        } catch (err) { res(dataUrl); }
+      };
+      img.onerror = function () { res(dataUrl); };
+      img.src = dataUrl;
     });
+  }
+
+  /* ---- save the certificate ---- */
+  document.getElementById('certSave').addEventListener('click', async function () {
+    var title  = document.getElementById('cfTitle').value.trim();
+    var type   = document.getElementById('cfType').value;
+    var holder = document.getElementById('cfName').value.trim();
+    var issuer = document.getElementById('cfIssuer').value.trim();
+    var start  = document.getElementById('cfStart').value;
+    var date   = document.getElementById('cfDate').value;
+    var cred   = document.getElementById('cfCred').value.trim();
+    var link   = document.getElementById('cfLink').value.trim();
+    var fileIn = document.getElementById('cfFile');
+
+    addMsg.style.color = 'var(--amber)';
+    if (!title || !holder || !issuer || !start || !date) {
+      addMsg.textContent = 'certificate name, your name, platform, start date and issue date are required.';
+      return;
+    }
+    if (!fileIn.files.length) {
+      addMsg.textContent = 'choose the certificate file (PDF or image).';
+      return;
+    }
+    var file = fileIn.files[0];
+    var key = title.toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 24) || ('cert' + Date.now());
+
+    addMsg.style.color = 'var(--text-faint)';
+    addMsg.textContent = 'processing…';
+
+    var thumb = await makeThumb(file);
+    if (thumb) window.CERT_IMAGES[key] = thumb;
+
+    window.CERT_DATA.push({
+      key: key,
+      issuer: issuer,
+      date: date,
+      start: start,
+      holder: holder,
+      credential: cred || undefined,
+      link: link || undefined,
+      file: file.name,
+      title: title,
+      kind: type,
+      type: file.type === 'application/pdf' || /\.pdf$/i.test(file.name) ? 'pdf' : 'image'
+    });
+
+    if (window.renderCertSection) window.renderCertSection(); else location.reload();
+    addF.reset();
+    document.getElementById('cfName').value = holder;
+    document.getElementById('cfType').value = 'Certification';
+    addMsg.style.color = 'var(--mint)';
+    addMsg.textContent = 'certificate added to this page. It resets when you reload — see the note below to make it permanent.';
+  });
+
+
+  /* ---- remove (admin only) ---- */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.cert-del');
+    if (!b || !isAdm()) return;
+    if (!confirm('Remove this certificate from the page?')) return;
+    var key = b.getAttribute('data-del');
+    window.CERT_DATA = window.CERT_DATA.filter(function (c) { return c.key !== key; });
+    if (window.renderCertSection) window.renderCertSection();
+    else location.reload();
   });
 })();
 
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a5151c6b5f7897f6',t:'MTc5MzEzOTg2Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a51acb7f6a044186',t:'MTc5MzE5OTQ2Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
